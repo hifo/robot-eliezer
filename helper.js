@@ -1,7 +1,26 @@
 import {HebrewCalendar, HDate, Location, Event} from '@hebcal/core';
 
-const optionsToday = {
-    location: Location.lookup('New York'),
+export const locationsList = ['Ashdod', 'Atlanta', 'Austin', 
+    'Baghdad', 'Beer Sheva', 'Berlin', 'Baltimore', 'Bogota', 'Boston', 'Budapest', 'Buenos Aires', 'Buffalo', 
+    'Chicago', 'Cincinnati', 'Cleveland', 
+    'Dallas', 'Denver', 'Detroit', 
+    'Eilat', 
+    'Gibraltar', 
+    'Haifa', 'Hawaii', 'Helsinki', 'Houston', 
+    'Jerusalem', 'Johannesburg', 
+    'Kiev', 
+    'La Paz', 'Livingston', 'Las Vegas', 'London', 'Los Angeles', 
+    'Marseilles', 'Miami', 'Minneapolis', 'Melbourne', 'Mexico City', 'Montreal', 'Moscow', 
+    'New York', 
+    'Omaha', 'Ottawa', 
+    'Panama City', 'Paris', 'Pawtucket', 'Petach Tikvah', 'Philadelphia', 'Phoenix', 'Pittsburgh', 'Providence', 'Portland', 
+    'Saint Louis', 'Saint Petersburg', 'San Diego', 'San Francisco', 'Sao Paulo', 'Seattle', 'Sydney', 
+    'Tel Aviv', 'Tiberias', 'Toronto', 
+    'Vancouver', 'White Plains', 'Washington DC', 'Worcester'];
+
+function getOptionsTodayWithLocation(locationName = 'Jerusalem') {
+  return {
+    location: Location.lookup(locationName),
     omer: true,
     sedrot: true,
     candlelighting: true,
@@ -10,10 +29,26 @@ const optionsToday = {
     molad: true,
     yomKippurKatan: true,
     yizkor: true
+  };
 }
 
-const optionsOutlook = {
-    location: Location.lookup('New York'),
+function getOptionsSatCalWithLocation(locationName = 'Jerusalem') {
+  return {
+    location: Location.lookup(locationName),
+    omer: false,
+    sedrot: true,
+    candlelighting: true,
+    havdalahMins: true,
+    shabbatMevarchim: false,
+    molad: false,
+    yomKippurKatan: true,
+    yizkor: true
+  };
+}
+
+function getOptionsOutlookWithLocation(locationName = 'Jerusalem') {
+  return {
+    location: Location.lookup(locationName),
     omer: false,
     sedrot: true,
     candlelighting: true,
@@ -22,6 +57,7 @@ const optionsOutlook = {
     molad: true,
     yomKippurKatan: true,
     yizkor: true
+  };
 }
 
 export function getHebrewDate() {
@@ -30,26 +66,50 @@ export function getHebrewDate() {
   return { hebrewDateInHebrew: hebrewDate.renderGematriya(), hebrewDateInEnglish: hebrewDate.render() };
 }
 
-export function getHolidays() {
-    const events = HebrewCalendar.calendar(optionsToday);
+export function getHolidays(locationName = 'Jerusalem') {
+    const events = HebrewCalendar.calendar(getOptionsTodayWithLocation(locationName));
+    const satEvents = HebrewCalendar.calendar(getOptionsSatCalWithLocation(locationName));
+    
     var holidaysToday = [];
     var holidaysTodayAshki = [];
+    
+    const today = new Date();
+    const isFriday = today.getDay() === 5;
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    
     for (const event of events) {
         const hd = event.getDate();
         const date = hd.greg();
-        const today = new Date();
-        if (date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear()) {
+        
+        const isToday = date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+        
+        if (isToday) {
             holidaysToday.push(event.render('en'));
             holidaysTodayAshki.push(event.render('ashkenazi'));
         }
     }
-    console.log(holidaysToday);
-    console.log(holidaysTodayAshki);
+    
+    // On Friday, include Saturday events from satEvents calendar
+    if (isFriday) {
+        for (const event of satEvents) {
+            const hd = event.getDate();
+            const date = hd.greg();
+            
+            const isTomorrow = date.getDate() === tomorrow.getDate() && date.getMonth() === tomorrow.getMonth() && date.getFullYear() === tomorrow.getFullYear();
+            
+            if (isTomorrow) {
+                holidaysToday.push(event.render('en'));
+                holidaysTodayAshki.push(event.render('ashkenazi'));
+            }
+        }
+    }
+    
     return { holidaysToday, holidaysTodayAshki };
 }
 
-export function getHolidaysNext10Days() {
-    const events = HebrewCalendar.calendar(optionsOutlook);
+export function getHolidaysNext10Days(locationName = 'Jerusalem') {
+    const events = HebrewCalendar.calendar(getOptionsOutlookWithLocation(locationName));
     var holidaysToday = [];
     var holidaysTodayAshki = [];
     
@@ -69,7 +129,5 @@ export function getHolidaysNext10Days() {
             holidaysTodayAshki.push(event.render('ashkenazi') + ` (${date.toDateString()})`);
         }
     }
-    console.log(holidaysToday);
-    console.log(holidaysTodayAshki);
     return { holidaysToday, holidaysTodayAshki };
 }

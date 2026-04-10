@@ -1,0 +1,7 @@
+{
+  "require": "dotenv/config",
+  "spec": "tests/**/*.test.js",
+  "node-option": [
+    "experimental-specifier-resolution=node"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "all": true,
+  "include": [
+    "helper.js",
+    "src/**/*.js",
+    "commands/**/*.js"
+  ],
+  "exclude": [
+    "tests/**",
+    "coverage/**",
+    "reports/**"
+  ],
+  "report-dir": "coverage"
+}
